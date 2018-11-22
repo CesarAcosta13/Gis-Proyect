@@ -1,0 +1,210 @@
+<!doctype html>
+<meta charset="utf-8"/>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="ol4/css/ol.css" type="text/css">
+        <style>
+            #map {
+                height: 400px;
+                width: 75%;
+                float: left;
+            }
+            #panel{
+                height: 400px;
+                width: 25%;
+                float: right;
+                background-color: #EEE;
+            }
+        </style>
+        <title>Trabajo Integrador GIS2018</title>
+        <script>
+                var titulocapas = ["Provincias","Puente Red Vial","Alturas Topograficas","Puntos Del Terreno","Salvado De Obstaculo","Senializaciones",
+                    "Otras Edificaciones","Estructuras Portuarias","Infraestructura Aeroportuaria","Infraestructura Hidrologica","Actividades Agropecuarias",
+                    "Actividades Economicas","Complejo De Energia","Edificios Contrucciones y Turisticas","Edificios Deporivos y Esparcimiento",
+                    "Edificios Educativos","Edificios Religiosos","Edificios de Salud","Edificios Publicos","Edificios Ferroviarios",
+                    "Localidades","Marcas y señales","Obra de Comunicacion","Obra Portuaria","Red Ferroviaria","Red Vial","Vias Secundarias",
+                    "Curso de agua","Curvas de nivel","Lineas de conduccion","Muro de embalse","Limite politico administrativo","Espejo de agua",
+                    "Ejido","Isla","Suelo congelado","Suelo consolidado","Suelo costero","Suelo hidromorfologico","Suelo no consolidado",
+                    "Vegetacion arborea","Vegetacion arbustiva","Vegetacion de cultivos","Vegetacion hidrofila","Vegetacion de suelo desnudo"]
+                
+                var nombrecapas = ["provincias","puente_red_vial_puntos","puntos_de_alturas_topograficas","puntos_del_terreno","salvado_de_obstaculo",
+                    "señalizaciones","otras_edificaciones","estructuras_portuarias","infraestructura_aeroportuaria_punto","infraestructura_hidro",
+                    "actividades_agropecuarias","actividades_economicas","complejo_de_energia_ene","edif_construcciones_turisticas","edif_depor_y_esparcimiento",
+                    "edif_educacion","edif_religiosos","edificio_de_salud_ips","edificio_publico_ips","edificios_ferroviarios","localidades",
+                    "marcas_y_señales","obra_de_comunicación","obra_portuaria","red_ferroviaria","red_vial","vias_secundarias","curso_de_agua_hid",
+                    "curvas_de_nivel","líneas_de_conducción_ene","muro_embalse","limite_politico_administrativo_lim","espejo_de_agua_hid",
+                    "ejido","isla","sue_congelado","sue_consolidado","sue_costero","sue_hidromorfologico","sue_no_consolidado","veg_arborea",
+                    "veg_arbustiva","veg_cultivos","veg_hidrofila","veg_suelo_desnudo"]
+        
+            </script>
+        <script src="ol4/build/ol-debug.js" type="text/javascript"></script>
+        <script src="url.js" type="text/javascript"></script>
+         <!-- agrego la bibloteca de jquery por CDN -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    </head>
+
+<body> 
+         
+        <h1>My Map</h1>
+
+        <!-- DIV que contiene el mapa -->
+        <div id="map"></div>  
+        
+        <div id="panel">
+
+                <!-- Radio buttons para cambiar las interacciones activas -->
+                <h3>Controles</h3>
+                <!-- evento onchange: ejecuta la funcion seleccionarControl -->
+                <input
+                    type="radio"
+                    name="controles"
+                    id="controles_navegacion"
+                    value="navegacion"
+                    checked="checked"
+                    onchange="seleccionarControl(this)"
+    
+                    > <label for="controles_navegacion"> Navegacion</label><br/>
+                <input
+                    type="radio"
+                    name="controles"
+                    id="controles_consulta"
+                    value="consulta"
+                    onchange="seleccionarControl(this)"
+                    > <label for="controles_consulta"> Consulta</label><br/>      
+               
+                <input
+                    type="radio"
+                    name="controles"
+                    id="controles_insertardatos"
+                    value="insertar datos"
+                    onchange="seleccionarControl(this)"
+    
+                    > <label for="controles_insertardatos"> Insertar Datos</label><br/>
+                
+                
+                <h3>Capas</h3>
+                <!-- checkboxes para activar/desactivar las capas -->
+                <script type="text/javascript">                
+            
+                    for (i = 0; i < nombrecapas.length; i++){ 
+                            var layer = "";                           
+                            name = nombrecapas[i];
+                            titulo = titulocapas[i];
+                            layer = "check_layer_"+(i+1);
+                            document.write("<input class='last' id="+name+" type='checkbox'><label for="+layer+">"+titulo+" </label><br/>");
+                    }
+                </script>
+    
+    
+
+
+         <!-- SCRIPT que crea el mapa y sus capas -->
+         <script type="text/javascript">
+                
+                //creo las capas individualmente
+                function crearcapas(i){ 
+                    var capa= "";   
+                    var titulo = nombrecapas[i];
+                    var nombre = nombrecapas[i];
+                    capa = cargarcapas(titulo,nombre);  //llamo a cargarcapas()
+                    return capa;    
+                 };
+                
+                 // defino los valores de cada capa
+                function cargarcapas(titulo,nombre){
+                            nombre = new ol.layer.Image({
+                            name: titulo,
+                            visible: false,
+                            source: new ol.source.ImageWMS({
+                                url:URL_OGC,
+                                params: {LAYERS: nombre}
+                            })
+                        })  
+                        return nombre;
+                };
+                 
+                // creo el objeto mapa
+                var map = new ol.Map({
+                target: 'map',
+                layers: [ new ol.layer.Tile({
+                        title: "Natural Earth Base Map",
+                        source: new ol.source.TileWMS({
+                            url: 'http://demo.boundlessgeo.com/geoserver/wms',
+                            params: {LAYERS: 'ne:ne', VERSION: '1.1.1'}
+                        })
+                    }),
+                ],
+                view: new ol.View({
+                    projection: 'EPSG:4326',
+                    center: [-59, -27.5],
+                    zoom: 4
+
+                })
+               });
+
+                 //Añado todas capas al mapa mediante addLayer()
+                for (i = 0; i < nombrecapas.length; i++){
+                    map.addLayer(crearcapas(i));
+            
+                };
+
+                var selectInteraction = new ol.interaction.DragBox(
+                {
+                    condition: ol.events.condition.always, //noModifierKeys
+                    style: new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            color: [0, 0, 255, 1]
+                        })
+                    })
+                }
+            );
+
+            selectInteraction.on('boxend', function (evt) {
+                //this: referencia al selectInteraction
+                console.log('boxend', this.getGeometry().getCoordinates());
+
+            });
+
+
+            //funcion para el evento click en el mapa
+            var clickEnMapa = function (evt) {
+                //muestro por consola las coordenadas del evento
+                console.log('click',evt.coordinate);
+            };
+
+            //function para "cambiar" de interaction en function del value de los radios
+            var seleccionarControl = function (el) {
+                if (el.value == "consulta") {
+                    //agrego la interaccion del dragbox
+                    //la cual tiene precedencia sobre las otras
+                    map.addInteraction(selectInteraction);
+                } else if (el.value == "navegacion") {
+                    //la remuevo...
+                    map.removeInteraction(selectInteraction);
+                }
+                //muestro por consola el valor
+                console.log(el.value);
+            };
+
+
+                    // jquery manegando los evento .click
+                    // activar y desactivar la visibilidad de las capas
+                         $(document).ready(function () {
+                         $(".last").click(function () {
+                            var lid = $(this).attr('id');
+                           map.getLayers().forEach(function(layer){
+                                var visible = layer.getVisible();
+                                if (layer.get('name') == lid) {
+                                    if (visible == false){
+                                    layer.setVisible(true);
+                                    }
+                                    else{
+                                    layer.setVisible(false);
+                                    }
+                                }
+                            });
+                         });
+                       });
+         </script> 
+    </body>
+</html>
